@@ -50,7 +50,7 @@ class StatesEnv(gym.Env):
         return copy.deepcopy(self.states_cond)
         
     def step(self, action):
-    		self.action_list = action
+    	self.action_list = action
         reward = self.get_reward()
         # increment episode
         if self.curr_step == self.episodes:
