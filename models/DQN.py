@@ -17,7 +17,7 @@ class StatesEnv(gym.Env):
         self.states = s #no of states
         self.observation_space = spaces.Box(np.array([0,0,0,0,0,0,0,0,0]), np.array([1,1,1,1,1,1,1,1,1]), shape=(9,), dtype = np.float32)	#continuous observation space
         self.action_space = spaces.Discrete(buckets)	#discrete action space
-        self.curr_step = 0
+        self.curr_step = 1
         self.done = False
         self.valueMap = np.zeros((self.states, 100))
         self.total = total #total number of vials available in 1 batch = batch size 
@@ -43,7 +43,7 @@ class StatesEnv(gym.Env):
         return discrete_int
 
     def reset(self):
-        self.curr_step = 0
+        self.curr_step = 1
         self.done = False
         self.total = 1000000          #10 lakh vaccines
         self.states_cond =  np.array([self.confirmed,self.dr,self.rr,self.population,self.susceptible_ratio,self.bed,self.icu,self.ventilator,self.old])
@@ -56,7 +56,6 @@ class StatesEnv(gym.Env):
         new_susceptible_ratio = ((self.susceptible_ratio*total_susceptible)-vaccine_allotted)/(total_susceptible-vaccine_allotted)
         self.states_cond[4] = new_susceptible_ratio
         # increment episode
-        self.curr_step+=1
         if self.curr_step == self.episodes:
             self.done=True
         else:
