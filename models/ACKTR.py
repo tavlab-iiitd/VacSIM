@@ -14,7 +14,7 @@ import math
 import random
 class StatesEnv(gym.Env):
     metadata = {'render.modes':['human']}
-    def __init__(self, s, episodes, total, confirmed, dr, rr, population, susceptible_ratio, bed, icu, ventilator, old, buckets):  #susceptible ratio is ratio of susceptible people in that state/total susceptible people combining all states 
+    def __init__(self, s, episodes, total, confirmed, dr, rr, population, susceptible_ratio, bed, icu, ventilator, old, buckets, total_susceptible):  #susceptible ratio is ratio of susceptible people in that state/total susceptible people combining all states 
         self.states = s #no of states
         self.observation_space = spaces.Box(np.array([0,0,0,0,0,0,0,0,0]), np.array([1,1,1,1,1,1,1,1,1]), shape=(9,), dtype = np.float32)
         self.action_space = spaces.Discrete(buckets)
@@ -37,6 +37,7 @@ class StatesEnv(gym.Env):
         self.ventilator=ventilator
         self.old=old
         self.buckets=buckets
+        self.total_susceptible=total_susceptible
         self.reset()
     def get_discrete_int(self, n):
         discrete_int = int(n)
@@ -52,6 +53,9 @@ class StatesEnv(gym.Env):
     def step(self, action):
     	self.action_list = action
         reward = self.get_reward()
+        vaccine_allotted = (action/self.buckets)*self.total
+        new_susceptible_ratio = ((self.susceptible_ratio*total_susceptible)-vaccine_allotted)/(total_susceptible-vaccine_allotted)
+        self.states_cond[4] = new_susceptible_ratio
         # increment episode
         if self.curr_step == self.episodes:
             self.done=True
@@ -93,7 +97,7 @@ for i in range(0,75,5):   # change according to how many days the model needs to
         icu_ratio=arr[s][8]/total_icu
         venti_ratio=arr[s][9]/total_venti
         old_ratio=arr[s][10]/total_old
-        env=StatesEnv(1,1,100000,confirmed_ratio,dr,rr,population_ratio,susceptible_ratio,bed_ratio,icu_ratio,venti_ratio,old_ratio,1000)
+        env=StatesEnv(1,1,100000,confirmed_ratio,dr,rr,population_ratio,susceptible_ratio,bed_ratio,icu_ratio,venti_ratio,old_ratio,1000,total_susceptible)
         model = ACKTR('MlpPolicy', env, verbose=0,n_steps=1, seed=1, learning_rate=1e-3)
         model.learn(total_timesteps=int(2e3), log_interval=100)
         obs = env.reset()
